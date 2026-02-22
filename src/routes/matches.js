@@ -10,13 +10,13 @@ export const matchRouter = Router();
 const MAX_LIMIT = 100;
 
 matchRouter.get("/", async (req, res) => {
-        const parsed = listMatchesQuerySchema.safeParse(req.query);
+    const parsed = listMatchesQuerySchema.safeParse(req.query);
 
-        if (!parsed.success) {
-            return res.status(400).json({ message: "Invalid query", details: parsed.error.issues });
-        }
+    if (!parsed.success) {
+        return res.status(400).json({message: "Invalid query", details: parsed.error.issues});
+    }
 
-        const limit = Math.min(parsed.data.limit ?? 50, MAX_LIMIT)
+    const limit = Math.min(parsed.data.limit ?? 50, MAX_LIMIT)
     try {
         const data = await db
             .select()
@@ -24,9 +24,9 @@ matchRouter.get("/", async (req, res) => {
             .orderBy(desc(matches.createdAt))
             .limit(limit)
 
-        res.json({ data });
+        res.json({data});
     } catch (e) {
-        res.status(500).json({ error: "Failed to list matches" })
+        res.status(500).json({error: "Failed to list matches"})
     }
 })
 
@@ -34,10 +34,10 @@ matchRouter.post("/", async (req, res) => {
     const parsed = createMatchSchema.safeParse(req.body);
 
     if (!parsed.success) {
-        return res.status(400).json({ message: "Invalid payload", details: parsed.error.issues });
+        return res.status(400).json({message: "Invalid payload", details: parsed.error.issues});
     }
 
-    const { data: {startTime, endTime, homeScore, awayScore}} = parsed;
+    const {data: {startTime, endTime, homeScore, awayScore}} = parsed;
 
     try {
         const [event] = await db.insert(matches).values({
@@ -49,13 +49,17 @@ matchRouter.post("/", async (req, res) => {
             status: getMatchStatus(startTime, endTime),
         }).returning();
 
-        if (res.app.locals.broadcastMatchCreated) {
-            res.app.locals.broadcastMatchCreated(event);
+        try {
+            if (res.app.locals.broadcastMatchCreated) {
+                res.app.locals.broadcastMatchCreated(event);
+            }
+        } catch (broadcastErr) {
+            console.error("Failed to broadcast match created:", broadcastErr);
         }
 
-        res.status(201).json({ data: event });
+        res.status(201).json({data: event});
     } catch (e) {
         console.error("Failed to create match:", e);
-        res.status(500).json({ error: "Failed to create match" });
+        res.status(500).json({error: "Failed to create match"});
     }
 })
