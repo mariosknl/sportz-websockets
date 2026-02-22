@@ -50,7 +50,7 @@ function broadcastToMatch(matchId, payload) {
 
     const message = JSON.stringify(payload);
 
-    for(const clients of subscribers) {
+    for(const client of subscribers) {
         if (client.readyState === WebSocket.OPEN) {
             client.send(message)
         }
@@ -64,16 +64,17 @@ function handleMessage(socket, data) {
         message = JSON.parse(data.toString());
     } catch {
         sendJson(socket, { type: 'error', message: 'Invalid JSON'})
+        return;
     }
 
-    if (message?.type === subscribe && Number.isInteger(message.matchId)) {
+    if (message?.type === 'subscribe' && Number.isInteger(message.matchId)) {
         subscribe(message.matchId, socket);
         socket.subscriptions.add(message.matchId)
         sendJson(socket, { type: 'subscribed', matchId: message.matchId })
         return;
     }
 
-    if (message?.type === unsubscribe && Number.isInteger(message.matchId)) {
+    if (message?.type === 'unsubscribe' && Number.isInteger(message.matchId)) {
         unsubscribe(message.matchId, socket);
         socket.subscriptions.delete(message.matchId);
         sendJson(socket, { type: 'unsubscribed', matchId: message.matchId })
@@ -120,10 +121,6 @@ export function attachWebSocketServer(server) {
         })
         socket.on('close', () => {
             cleanupSubscriptions(socket);
-        })
-
-        wss.handleUpgrade(req, socket, head, (ws) => {
-            wss.emit('connection', ws, req)
         })
     });
 

@@ -85,7 +85,7 @@ commentaryRouter.post("/", async (req, res) => {
             res.app.locals.broadcastCommentary(entry.matchId, entry);
         }
 
-        res.status(201).json({ data: result })
+        res.status(201).json({ data: entry })
     } catch (error) {
         console.error('Error creating commentary:', error);
         res.status(500).json({ error: 'Internal Server Error' });
