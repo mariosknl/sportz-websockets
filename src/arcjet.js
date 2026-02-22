@@ -37,7 +37,7 @@ export function securityMiddleware() {
                     return res.status(429).json({ error: 'Too many requests' })
                 }
 
-                return res.status(503).json({ error: 'Forbidden' });
+                return res.status(403).json({ error: 'Forbidden' });
             }
         } catch (e) {
             console.error('Arcjet middleware error: ',e);
