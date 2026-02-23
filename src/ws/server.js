@@ -128,14 +128,13 @@ export function attachWebSocketServer(server) {
         });
 
         socket.on('error', () => {
+            console.error("WebSocker error on socket")
             socket.terminate();
         });
 
         socket.on('close', () => {
             cleanupSubscriptions(socket);
         })
-
-        socket.on('error', console.error);
     });
 
     const interval = setInterval(() => {
